@@ -1,0 +1,52 @@
+[package]
+name = "geo-ref_mapper"
+version = "0.6.0"
+edition = "2024"
+
+# Image decoding is ~150× slower unoptimised, which made debug builds unusable
+# for thumbnailing. Optimise dependencies while keeping our own crate debuggable.
+[profile.dev.package."*"]
+opt-level = 3
+
+# The pixel loops now live in *our* crate too — `loader::downscale_box` and the
+# tile compositing in `cog` — so leaving this at 0 made a debug build 18× slower
+# at downscaling than a release one (915 ms against 50 ms for an 80 MP map), and
+# slower than the filter it replaced. Level 1 recovers nearly all of that while
+# keeping line numbers and step-through usable.
+[profile.dev]
+opt-level = 1
+
+[dependencies]
+anyhow = "1.0.104"
+country-boundaries = "1.2"
+directories = "6.0.0"
+eframe = "0.35.0"
+# Already pulled in by eframe; named here because we use it directly to put an
+# *image* on the clipboard, which eframe's text-only clipboard cannot do.
+arboard = "3.6"
+flate2 = "1.1.9"
+image = "0.25.10"
+isocountry = "0.3"
+jxl-oxide = "0.12"
+libc = "0.2.189"
+libloading = "0.9.0"
+pollster = "0.4"
+resvg = "0.47"
+reverse_geocoder = "4"
+rfd = "0.17.2"
+rusqlite = { version = "0.40.1", features = ["bundled"] }
+# Only for the sidecars written beside source maps. Pure Rust, and the escaping
+# and number rules are exactly where a hand-written reader gets a real file
+# subtly wrong.
+serde_json = "1"
+rust_h265 = "0.1"
+ureq = "3"
+walkdir = "2.5.0"
+xcf-rs = "0.5"
+webp = { version = "0.3.1", features = ["img"] }
+
+# Already pulled in by winit; named here because we use it directly to tell the
+# desktop that the app has finished starting — see `startup`. eframe offers no
+# way to pass winit the launcher's token, so the message is sent by hand.
+[target.'cfg(target_os = "linux")'.dependencies]
+x11rb = "0.13"
